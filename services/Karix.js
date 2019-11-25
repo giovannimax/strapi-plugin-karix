@@ -9,6 +9,31 @@
 const Karix = require("karix-api");
 
 module.exports = {
+    sendOrderSms: async(orderid) => {
+        let msg = "Hi this is a sample text from myjoy.";
+        let recipients = ["+639205140343"];
+
+        let order = await strapi.models.orders.findOne({ _id: orderid});
+
+        let orderType = order.meta.type === "pick-up" ? "PU" : "DEL";
+
+        let orderPlace = order.meta.type === "pick-up" ? order.meta.branch : order.meta.address;
+
+        let payment = order.meta.payment === "paymaya" || order.meta.payment === "CAD" ? "Paid via Paymaya" : order.meta.payment;
+
+        var items = ``;
+
+        order.items.forEach((el, idx) => {
+            if(el.id !== "del-fee") {
+                items = `${items} \n ${el.qty} ${el.name}`;
+            }
+        });
+
+        let message = `New order from ${order.user.name} (${order.meta.phone}). ${orderType} ${order.meta.date} ${order.meta.time} at ${orderPlace}. ${payment} \n ${items}`;
+
+        let sms = await strapi.plugins.karix.services.karix.sendSms(message, recipients);
+        return sms;
+    },
     sendSms: async (msg, recipient) => {
         var config = strapi.config.karix;
 
@@ -16,7 +41,7 @@ module.exports = {
             accountId: config.accountId,
             accountToken: config.accountToken,
             // This is optional
-           host: process.env.KARIX_HOST || "https://api.karix.io/"
+            host: config.host || "https://api.karix.io/"
         });
 
         var createSms = {
