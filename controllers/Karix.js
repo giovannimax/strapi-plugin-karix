@@ -36,7 +36,7 @@ module.exports = {
 
     let message = `New order from ${order.user.name} (${order.meta.phone}). ${orderType} ${order.meta.date} ${order.meta.time} at ${orderPlace}. ${payment} \n ${items}`;
 
-    let sms = await strapi.plugins.karix.services.karix.sendSms(message, recipients);
+    let sms = await strapi.plugins.karix.services.karix.sendOrderSms(ctx.params.id);
   
     if(sms === 'error') {
       return ctx.send('error');

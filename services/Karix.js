@@ -10,11 +10,14 @@ const Karix = require("karix-api");
 
 module.exports = {
     sendOrderSms: async(orderid) => {
-        let msg = "Hi this is a sample text from myjoy.";
-        let recipients = ["+639205140343"];
 
         let order = await strapi.models.orders.findOne({ _id: orderid});
 
+        let branch = await strapi.models.branches.findOne({branchId : order.meta.branch});
+        let recipients = branch.contactNumbers || [];
+        let sets = await strapi.models.settings.findOne({key: "app"});
+        recipients.push(sets.value['admin-contact']);
+        
         let orderType = order.meta.type === "pick-up" ? "PU" : "DEL";
 
         let orderPlace = order.meta.type === "pick-up" ? order.meta.branch : order.meta.address;
